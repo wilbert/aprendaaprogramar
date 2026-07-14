@@ -18,8 +18,19 @@ module Main
     html(:lang=>'pt_br') do
       head do
         meta('http-equiv'=>"Content-Type", :content=>"text/html; charset=utf-8")
-      	
+
         puts '<meta name="viewport" content="width=device-width, initial-scale=1">'
+
+        #  Google Analytics (GA4). The measurement id comes from the environment
+        #  (set GA_MEASUREMENT_ID in the server's shared/.env), so analytics only
+        #  loads where it's configured — never in dev/test. The format check guards
+        #  against injecting anything but a plain GA id.
+        ga_id = ENV['GA_MEASUREMENT_ID'].to_s
+        if ga_id =~ /\A[A-Za-z0-9\-]+\z/
+          puts %(<script async src="https://www.googletagmanager.com/gtag/js?id=#{ga_id}"></script>)
+          puts %(<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','#{ga_id}');</script>)
+        end
+
         puts '<link rel="preconnect" href="https://fonts.googleapis.com">'
         puts '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
         puts '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap">'
