@@ -48,13 +48,13 @@ Recommended:
 5. Start the application:
 
    ```bash
-   ruby script/server -p 3000
+   ruby script/server -p 4050
    ```
 
 6. Open the app in your browser:
 
    ```text
-   http://localhost:3000
+   http://localhost:4050
    ```
 
 ## Deployment
@@ -121,14 +121,14 @@ You may also want to create a production-ready shell script or service file if y
 For a simple deployment, start the app directly:
 
 ```bash
-ruby script/server -e production -p 3000
+ruby script/server -e production -p 4050
 ```
 
 If you want the app to stay running in the background, use a process manager such as `screen` or `tmux`.
 
 ### 6. Use Nginx as a reverse proxy
 
-A typical Nginx configuration can forward traffic to the Rails app on port 3000.
+A typical Nginx configuration can forward traffic to the Rails app on port 4050.
 
 Example configuration:
 
@@ -138,7 +138,7 @@ server {
     server_name your-domain.com;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:4050;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -172,7 +172,7 @@ After=network.target
 [Service]
 WorkingDirectory=/var/www/aprendaaprogramar
 Environment=RAILS_ENV=production
-ExecStart=/usr/bin/ruby /var/www/aprendaaprogramar/script/server -e production -p 3000
+ExecStart=/usr/bin/ruby /var/www/aprendaaprogramar/script/server -e production -p 4050
 Restart=always
 User=www-data
 Group=www-data
@@ -198,6 +198,6 @@ sudo systemctl start aprendaaprogramar
 ## Useful commands
 
 ```bash
-ruby script/server -p 3000
+ruby script/server -p 4050
 ruby script/console
 ```

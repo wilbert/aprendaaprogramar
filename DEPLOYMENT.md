@@ -16,10 +16,10 @@ VPS: scripts/deploy.sh
       │  [bundle install]
       │  systemctl restart aprendaaprogramar.service
       ▼
-Rails app runs on localhost:3000
+Rails app runs on localhost:4050
       │
       ▼
-nginx reverse-proxies HTTPS traffic to 127.0.0.1:3000
+nginx reverse-proxies HTTPS traffic to 127.0.0.1:4050
 ```
 
 This repository includes:
