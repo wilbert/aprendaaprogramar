@@ -14,18 +14,38 @@ module Main
       chapTitle += chapter[0]
     end
     
-    puts '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">'
+    puts '<!DOCTYPE html>'
     html(:lang=>'pt_br') do
       head do
         meta('http-equiv'=>"Content-Type", :content=>"text/html; charset=utf-8")
       	
-        link(:href=>LINKADDR+'stylesheets/pine.css', :rel=>'Stylesheet', :type=>'text/css', :media=>'screen')
-        link(:href=>LINKADDR+'stylesheets/tutorial.css', :rel=>'Stylesheet', :type=>'text/css', :media=>'screen, print')
+        puts '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        puts '<link rel="preconnect" href="https://fonts.googleapis.com">'
+        puts '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+        puts '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap">'
+        link(:href=>LINKADDR+'stylesheets/rubyinsights.css', :rel=>'Stylesheet', :type=>'text/css', :media=>'screen')
         link(:href=>LINKADDR+'stylesheets/print.css', :rel=>'Stylesheet', :type=>'text/css', :media=>'print')
         title { chapTitle }
-        script(:language=>'JavaScript', :src=>'http://www.gvisit.com/record.php?sid=6941c11eba5c874197e2096f9c854106', :type=>'text/javascript') {}
       end # head
       body do
+      puts <<~'RIHEADER'
+        <a class="ri-skip" href="#contentPane">Pular para o conteúdo</a>
+        <header class="ri-header">
+          <div class="ri-header-inner">
+            <a class="ri-logo" href="https://rubyinsights.blog" aria-label="RubyInsights">
+              <svg class="ri-gem" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>
+              <span class="ri-logo-badge">Ruby</span><span class="ri-logo-word">Insights</span>
+            </a>
+            <nav class="ri-nav" aria-label="Primary">
+              <a href="https://rubyinsights.blog">Início</a>
+              <a href="https://rubyinsights.blog/ruby">Ruby</a>
+              <a href="https://rubyinsights.blog/rails">Rails</a>
+              <a href="https://rubyinsights.blog/tutorials">Tutoriais</a>
+              <a class="ri-nav-current" href="/">Aprenda a Programar</a>
+            </nav>
+          </div>
+        </header>
+      RIHEADER
       div(:id=>'pageWidth') do
         div(:id=>'headerBar') do
           div(:id=>'titlePicContainer') do
@@ -312,6 +332,18 @@ module Main
           para(:style=>'padding-bottom: 20px;') { "&copy; 2003-#{Time.now.year} Chris Pine" }
         end # contentPane
       end # pageWidth
+      puts <<~RIFOOTER
+        <footer class="ri-footer">
+          <div class="ri-footer-inner">
+            <p class="ri-footer-copy">&copy; 2003&ndash;#{Time.now.year} Chris Pine &middot; Tradu&ccedil;&atilde;o PT-BR &middot; <a href="https://rubyinsights.blog">RubyInsights</a></p>
+            <nav class="ri-footer-nav" aria-label="Legal">
+              <a href="https://rubyinsights.blog/privacy-policy">Privacidade</a>
+              <a href="https://rubyinsights.blog/terms-of-use">Termos</a>
+              <a href="https://rubyinsights.blog/cookie-policy">Cookies</a>
+            </nav>
+          </div>
+        </footer>
+      RIFOOTER
       end # body
     end # html
   end

@@ -1,0 +1,272 @@
+/* ==========================================================================
+   RubyInsights theme for "Aprenda a Programar"
+   Design tokens, chrome (header/footer), layout and typography adapted from the
+   rubyinsights.blog Next.js app so the tutorial matches the RubyInsights brand.
+   The tutorial engine's L2P* syntax classes are preserved (recolored below).
+   ========================================================================== */
+
+:root {
+  --ruby-red: #D43A3A;
+  --ruby-dark: #273646;
+  --ruby-navy: #2B3C4A;
+  --slate-navy: #1F2D3A;
+  --mid-blue-gray: #415A6B;
+  --light-bg: #E9EEF3;
+  --white: #ffffff;
+  --accent-yellow: #FFD66E;
+
+  --border: #d7dee6;
+  --card: #ffffff;
+  --radius: 0.75rem;
+  --radius-sm: 0.4rem;
+  --shadow-sm: 0 1px 2px rgba(31, 45, 58, 0.06);
+  --shadow-md: 0 10px 30px -12px rgba(31, 45, 58, 0.35);
+
+  --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* ------------------------------- reset ---------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--ruby-dark);
+  background: var(--light-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img { max-width: 100%; height: auto; }
+a { color: var(--ruby-red); text-decoration: none; }
+a:hover { color: var(--ruby-dark); text-decoration: underline; }
+
+/* --------------------------- skip link ---------------------------------- */
+.ri-skip { position: absolute; left: -9999px; top: auto; }
+.ri-skip:focus {
+  left: 1rem; top: 0.5rem; z-index: 60;
+  background: #fff; color: var(--ruby-navy);
+  padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm); font-weight: 600;
+}
+
+/* ----------------------------- header ----------------------------------- */
+.ri-header {
+  position: sticky; top: 0; z-index: 50;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  backdrop-filter: saturate(180%) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.ri-header-inner {
+  max-width: 1120px; margin: 0 auto; padding: 0 1.25rem;
+  height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.ri-logo { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+.ri-logo:hover { text-decoration: none; }
+.ri-gem { width: 30px; height: 30px; color: var(--ruby-red); transition: transform 0.15s ease; }
+.ri-logo:hover .ri-gem { transform: scale(1.1); }
+.ri-logo-badge {
+  background: var(--ruby-red); color: #fff; font-weight: 700; font-size: 1.15rem;
+  line-height: 1; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); letter-spacing: -0.01em;
+}
+.ri-logo-word { color: var(--ruby-navy); font-weight: 700; font-size: 1.15rem; margin-left: 0.2rem; }
+
+.ri-nav { display: flex; align-items: center; gap: 1.4rem; font-size: 0.95rem; font-weight: 500; }
+.ri-nav a { color: rgba(43, 60, 74, 0.8); text-decoration: none; transition: color 0.15s ease; }
+.ri-nav a:hover { color: var(--ruby-red); text-decoration: none; }
+.ri-nav a.ri-nav-current { color: var(--ruby-red); }
+
+/* ------------------------------ layout ---------------------------------- */
+#pageWidth {
+  flex: 1 0 auto;
+  width: 100%; max-width: 1120px; min-width: 0;
+  margin: 0 auto; padding: 1.5rem 1.25rem 3rem;
+  display: grid; gap: 1.5rem; align-items: start;
+  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-areas: "hero hero" "menu content";
+}
+
+/* --------------------------- hero banner -------------------------------- */
+#headerBar {
+  grid-area: hero;
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, var(--ruby-navy) 0%, var(--slate-navy) 100%);
+  border-radius: var(--radius);
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+#headerBar::before,
+#headerBar::after {
+  content: ""; position: absolute; width: 260px; height: 260px; border-radius: 50%;
+  filter: blur(60px); z-index: 0; pointer-events: none;
+}
+#headerBar::before { background: rgba(212, 58, 58, 0.28); top: -120px; left: -80px; }
+#headerBar::after { background: rgba(255, 214, 110, 0.16); bottom: -140px; right: -60px; }
+#titlePicContainer { position: relative; z-index: 1; left: 0; width: auto; }
+#titlePic { position: static; left: 0; top: 0; display: inline-block; max-width: min(100%, 440px); height: auto; }
+#locket { display: none; }
+
+/* ---------------------------- side menu --------------------------------- */
+#menuPane {
+  grid-area: menu;
+  position: sticky; top: 84px; left: 0; width: auto;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.25rem; box-shadow: var(--shadow-sm);
+  font-family: var(--font-sans); font-size: 0.9rem; align-self: start;
+}
+#menuPane img, #menuSpearTop, #menuSpearBottom { display: none; }
+
+#menuPane .funnyMenuText,
+#menuPane .fancyMenuText {
+  position: static; left: 0; text-align: left; margin: 0 0 0.5rem; padding: 0;
+  letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.72rem; font-weight: 700;
+  color: var(--mid-blue-gray);
+}
+#menuPane ol {
+  list-style: none; margin: 0.5rem 0 1rem; padding: 0;
+  font-size: 0.92rem; font-family: var(--font-sans); line-height: 1.4;
+}
+#menuPane ol li { margin: 0; padding: 0; }
+#menuPane ol li a {
+  display: block; padding: 0.4rem 0.55rem; border-radius: var(--radius-sm);
+  color: var(--ruby-navy); font-weight: 500; text-decoration: none; transition: background 0.12s ease, color 0.12s ease;
+}
+#menuPane ol li a:visited { color: var(--ruby-navy); }
+#menuPane ol li a:hover { background: var(--light-bg); color: var(--ruby-red); text-decoration: none; }
+#menuPane p {
+  font-size: 0.78rem; font-family: var(--font-sans); line-height: 1.5;
+  color: var(--mid-blue-gray); margin: 0.35rem 0; padding: 0;
+}
+#menuPane a { color: var(--ruby-red); }
+
+/* --------------------------- content card ------------------------------- */
+#contentPane {
+  grid-area: content; position: static; left: 0; right: 0; top: 0; min-width: 0;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 2rem 2.25rem; box-shadow: var(--shadow-sm);
+}
+#contentPane p { line-height: 1.75; padding: 0; margin: 0 0 1rem; clear: none; }
+#contentPane ul, #contentPane ol { margin: 0 0 1rem 1.25rem; padding-left: 1rem; }
+#contentPane li { margin: 0.3rem 0; }
+
+/* --------------------------- typography --------------------------------- */
+h1, h2, h3, h4 {
+  font-family: var(--font-sans); color: var(--ruby-navy);
+  letter-spacing: -0.015em; font-variant: normal; text-align: left;
+}
+h1 {
+  font-size: 2rem; font-weight: 800; line-height: 1.2;
+  margin: 0 0 1rem; padding-top: 0.5rem;
+}
+h2 {
+  font-size: 1.4rem; font-weight: 700; line-height: 1.3;
+  margin: 1.75rem 0 0.75rem; padding: 0;
+}
+h3 { font-size: 1.15rem; font-weight: 700; margin: 1.25rem 0 0.5rem; padding: 0; position: static; left: 0; }
+h4 { font-size: 1rem; font-weight: 700; margin: 1rem 0 0.4rem; }
+
+blockquote {
+  border-left: 3px solid var(--ruby-red); background: var(--light-bg);
+  padding: 0.75rem 1rem; margin: 1rem 0 1rem 0.25rem; font-style: italic;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 0.95rem;
+}
+blockquote em { font-style: normal; }
+blockquote p { font-size: 0.95rem; }
+
+kbd {
+  font-family: var(--font-mono); font-size: 0.85em;
+  background: var(--ruby-navy); color: #fff; padding: 0.1rem 0.35rem; border-radius: 0.3rem;
+}
+dfn { font-style: italic; font-weight: 600; color: var(--ruby-red); }
+acronym, abbr { border-bottom: 1px dotted var(--mid-blue-gray); cursor: help; }
+
+/* fleur divider (HLINE) -> subtle rule */
+.fleur { clear: both; background: none; padding: 0; margin: 2rem 0; }
+.fleur_stem {
+  padding: 0; margin: 0; height: 0;
+  border: 0; border-top: 1px solid var(--border);
+}
+
+/* ------------------------- code & output -------------------------------- */
+/* Sample source cards (light, GitHub-like) with recolored syntax spans. */
+pre {
+  font-family: var(--font-mono); font-size: 0.88rem; line-height: 1.6;
+  padding: 1rem 1.15rem; margin: 1.25rem 0; width: auto; max-width: 100%;
+  border-radius: 0.6rem; overflow-x: auto; white-space: pre; tab-size: 2;
+}
+pre.L2PcodeBlock {
+  background: #f6f8fa; color: #24292e; border: 1px solid var(--border);
+}
+/* Program output cards -> dark "console" look. */
+pre.L2PoutputBlock {
+  background: var(--slate-navy); color: #e6edf3; border: 1px solid var(--slate-navy);
+}
+
+/* Inline code / output chips inside prose. */
+.L2Pcode {
+  font-family: var(--font-mono); font-weight: 600; white-space: pre; font-size: 0.9em;
+}
+:not(pre) > .L2Pcode {
+  background: var(--light-bg); border: 1px solid var(--border);
+  border-radius: 0.3rem; padding: 0.03rem 0.35rem;
+}
+.L2PcodeBG { background: var(--light-bg); }
+:not(pre) > .L2Pcode.L2PcodeBG {
+  background: var(--slate-navy); color: #e6edf3; border-color: var(--slate-navy);
+}
+
+/* Typed-input highlight (echoed in output, and inline in prose). */
+.L2Pinput {
+  font-family: var(--font-mono); background: #fff; color: var(--ruby-dark);
+  border: 1px solid var(--border); border-radius: 0.3rem;
+  padding: 0 0.3rem; white-space: pre;
+}
+
+/* Syntax colors — matched to the blog's highlight.js palette (light bg). */
+.L2Pkeyword    { color: #d73a49; font-weight: 600; }
+.L2Pstring     { color: #22863a; }
+.L2Pnumber     { color: #005cc5; }
+.L2Pdefinition { color: #6f42c1; font-weight: 600; }
+.L2Pcomment    { color: #6a737d; font-style: italic; }
+
+/* ------------------------------ footer ---------------------------------- */
+.ri-footer { margin-top: auto; background: var(--ruby-red); color: #fff; }
+.ri-footer-inner {
+  max-width: 1120px; margin: 0 auto; padding: 2.25rem 1.25rem;
+  display: flex; flex-direction: column; gap: 1rem;
+}
+.ri-footer-copy { margin: 0; font-size: 0.9rem; color: rgba(255, 255, 255, 0.92); }
+.ri-footer-copy a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.ri-footer-nav { display: flex; flex-wrap: wrap; gap: 1.25rem; font-size: 0.9rem; }
+.ri-footer-nav a { color: rgba(255, 255, 255, 0.92); text-decoration: none; }
+.ri-footer-nav a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+
+@media (min-width: 700px) {
+  .ri-footer-inner { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+
+/* ---------------------------- responsive -------------------------------- */
+@media (max-width: 860px) {
+  #pageWidth { grid-template-columns: 1fr; grid-template-areas: "hero" "menu" "content"; }
+  #menuPane { position: static; top: auto; }
+  #contentPane { padding: 1.5rem 1.35rem; }
+}
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .ri-nav { display: none; }
+  .ri-header-inner { padding: 0 1rem; }
+  #pageWidth { padding: 1rem 1rem 2.5rem; }
+  #headerBar { padding: 1.75rem 1rem; }
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.25rem; }
+}
