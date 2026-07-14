@@ -43,19 +43,27 @@ module LearnToProgram
   
   def puts (string, escapeThis=false)
     if escapeThis
-      string = CGI::escapeHTML string
+      string = htmlEscape string
     end
     @page << '  '*@depth+string
+  end
+
+  #  Old-style HTML escaping: escapes &, <, >, and " but deliberately NOT the
+  #  single quote. syntaxColor detects Ruby string literals by scanning for ',
+  #  so ' must survive escaping. (Modern CGI.escapeHTML turns ' into &#39;,
+  #  whose '#' then gets mis-parsed by syntaxColor as the start of a comment.)
+  def htmlEscape (str)
+    str.to_s.gsub(/[&<>"]/, '&' => '&amp;', '<' => '&lt;', '>' => '&gt;', '"' => '&quot;')
   end
   
   def escapeOutputNotInput (output)
     md = /#{INPUT}.*?#{INPUT.reverse}/.match output
     if md
-      CGI::escapeHTML(md.pre_match) +
-      CGI::escapeHTML(md[0]).sub(/#{INPUT}/,'<span class="L2Pinput">').sub(/#{INPUT.reverse}/,'</span>') +
+      htmlEscape(md.pre_match) +
+      htmlEscape(md[0]).sub(/#{INPUT}/,'<span class="L2Pinput">').sub(/#{INPUT.reverse}/,'</span>') +
       escapeOutputNotInput(md.post_match)
     else
-      CGI::escapeHTML output
+      htmlEscape output
     end
   end
   
@@ -116,20 +124,20 @@ module LearnToProgram
   
   
   def input (str)
-    str = CGI::escapeHTML str
+    str = htmlEscape str
     str.gsub!(/ /, '&nbsp;')
     '<span class="L2Pinput">'+str+'</span>'
   end
   
   def code (str)
-    str = CGI::escapeHTML str
+    str = htmlEscape str
     str.gsub!(/ /, '&nbsp;')
     str = syntaxColor  str
     '<span class="L2Pcode">'+str+'</span>'
   end
   
   def output (str)
-    str = CGI::escapeHTML str
+    str = htmlEscape str
     str.gsub!(/ /, '&nbsp;')
     '<span class="L2Pcode L2PcodeBG" style="padding-right: 3px; padding-left: 3px;">'+str+'</span>'
   end
@@ -218,14 +226,14 @@ module LearnToProgram
     end
     code = lines.join($/)
     
-    prettyCode = syntaxColor(CGI::escapeHTML(code))
+    prettyCode = syntaxColor(htmlEscape(code))
     
     #  Spit it out.
     puts '<pre class="L2PcodeBlock">'+prettyCode+'</pre>'
     
     trialRuns.each do |run|
       if run[:fakeOutput]
-        puts '<pre class="L2PoutputBlock">'+CGI::escapeHTML(run[:fakeOutput])+'</pre>'
+        puts '<pre class="L2PoutputBlock">'+htmlEscape(run[:fakeOutput])+'</pre>'
       end
       if run[:remark]
         puts '<p>'+run[:remark]+'</p>'
@@ -277,7 +285,7 @@ module LearnToProgram
         error_msg = <<-END_ERROR
           <html><head><title>ERRO</title></head>
           <body><h3>ERRO: envie um e-mail para o Chris ou para a Katy com o seguinte endereço</h3>
-          <pre><strong>#{e.class}:  #{CGI::escapeHTML(e.message)}</strong>
+          <pre><strong>#{e.class}:  #{htmlEscape(e.message)}</strong>
           #{e.backtrace.join("\n")}
           </pre>
           </body></html>

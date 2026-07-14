@@ -88,7 +88,7 @@ module Main
             end
 
             para do <<-END_PARAGRAPH
-              Eu, <b>Fabio Akita</b>, <a href="http://www.akitaonrails.com/2008/1/15/vamos-traduzir-o-learn-to-program">surgi</a>
+              Eu, <b>Wilbert Ribeiro</b>, surgi
               com esta sugestão em Janeiro de 2008. Fiz o anúncio no meu blog e na lista rails-br e foi um
               movimento incrívei: dezenas de voluntários se candidataram a ajudar. Graças a isso a tradução
               e revisão não durou uma semana! Fico extremamente satisfeito em ter essa amostra da
@@ -280,7 +280,7 @@ module Main
             h2 { "Sobre o Material Traduzido" }
             para do <<-END_PARAGRAPH
               O código original descrito por Chris Pine acima, era uma versão simples e implementada sobre
-              CGI. Em total ritmo de 2008, eu mesmo (Fabio Akita) modifiquei esse código. Sem muitas 
+              CGI. Em total ritmo de 2008, eu mesmo (Wilbert Ribeiro) modifiquei esse código. Sem muitas
               modificações sobre o original, transportei o código para rodar sobre Rails 2.0.2.
               END_PARAGRAPH
             end
@@ -335,7 +335,7 @@ module Main
       puts <<~RIFOOTER
         <footer class="ri-footer">
           <div class="ri-footer-inner">
-            <p class="ri-footer-copy">&copy; 2003&ndash;#{Time.now.year} Chris Pine &middot; Tradu&ccedil;&atilde;o PT-BR &middot; <a href="https://rubyinsights.blog">RubyInsights</a></p>
+            <p class="ri-footer-copy">Adaptado por Wilbert Ribeiro &middot; Baseado no <a href="http://pine.fm/LearnToProgram/">Learn to Program</a> original de Chris Pine (&copy; 2003&ndash;#{Time.now.year}).</p>
             <nav class="ri-footer-nav" aria-label="Legal">
               <a href="https://rubyinsights.blog/privacy-policy">Privacidade</a>
               <a href="https://rubyinsights.blog/terms-of-use">Termos</a>
