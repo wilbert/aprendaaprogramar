@@ -99,12 +99,13 @@ module Main
             end
 
             para do <<-END_PARAGRAPH
-              Eu, <b>Wilbert Ribeiro</b>, surgi
-              com esta sugestão em Janeiro de 2026. Fiz o anúncio no meu blog e na lista rails-br e foi um
-              movimento incrívei: dezenas de voluntários se candidataram a ajudar. Graças a isso a tradução
-              e revisão não durou uma semana! Fico extremamente satisfeito em ter essa amostra da
-              comunidade se auto-ajudando. Espero ter a oportunidade de conduzir mais trabalhos desta
-              natureza.
+              Eu, <b>Wilbert Ribeiro</b>, resgatei e modernizei este tutorial em 2026. A tradução em
+              português brasileiro nasceu anos atrás de um belo esforço coletivo da comunidade Ruby-BR, e
+              eu quis dar a ela uma nova casa: reescrevi a aplicação para rodar sobre <b>Rails 8</b> e
+              <b>Ruby 3.4.4</b>, renovei todo o visual e voltei a publicá-la em
+              <a href="https://aprendaaprogramar.rubyinsights.blog">aprendaaprogramar.rubyinsights.blog</a>,
+              mantendo intacto o conteúdo original de Chris Pine. Fico muito feliz em manter viva uma obra
+              tão querida por quem está começando a programar.
               END_PARAGRAPH
             end
 
