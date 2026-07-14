@@ -89,7 +89,7 @@ module Main
 
             para do <<-END_PARAGRAPH
               Eu, <b>Wilbert Ribeiro</b>, surgi
-              com esta sugestão em Janeiro de 2008. Fiz o anúncio no meu blog e na lista rails-br e foi um
+              com esta sugestão em Janeiro de 2026. Fiz o anúncio no meu blog e na lista rails-br e foi um
               movimento incrívei: dezenas de voluntários se candidataram a ajudar. Graças a isso a tradução
               e revisão não durou uma semana! Fico extremamente satisfeito em ter essa amostra da
               comunidade se auto-ajudando. Espero ter a oportunidade de conduzir mais trabalhos desta
@@ -261,7 +261,7 @@ module Main
             h2 { 'Sobre o Tutorial Original' }
             para do <<-END_PARAGRAPH
               As páginas do tutorial (esta página, inclusive) são geradas por um
-              <a href="https://github.com/jmonteiro/aprendaaprogramar">grande programa em Ruby</a>,
+              <a href="https://github.com/wilbert/aprendaaprogramar">grande programa em Ruby</a>,
               claro. :-)
               Assim, elas possuem recursos elegantes. Por exemplo, todos os
               exemplos de código são realmente executados toda vez que você
@@ -280,8 +280,8 @@ module Main
             h2 { "Sobre o Material Traduzido" }
             para do <<-END_PARAGRAPH
               O código original descrito por Chris Pine acima, era uma versão simples e implementada sobre
-              CGI. Em total ritmo de 2008, eu mesmo (Wilbert Ribeiro) modifiquei esse código. Sem muitas
-              modificações sobre o original, transportei o código para rodar sobre Rails 2.0.2.
+              CGI. Em 2026, eu mesmo (Wilbert Ribeiro) modernizei esse código. Sem muitas
+              modificações sobre o original, transportei o código para rodar sobre Rails 8 e Ruby 3.4.4.
               END_PARAGRAPH
             end
 
@@ -291,7 +291,7 @@ module Main
             end
 
             para do <<-END_PARAGRAPH
-              <em>https://github.com/jmonteiro/aprendaaprogramar</em>
+              <em>https://github.com/wilbert/aprendaaprogramar</em>
               END_PARAGRAPH
             end
 

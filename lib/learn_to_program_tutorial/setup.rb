@@ -251,10 +251,10 @@ module Setup
       você possa usá-lo.
       Mova o arquivo baixado para um diretório temporário, como
       <kbd>$HOME/tmp</kbd>.  Se o nome do arquivo for
-      <kbd>ruby-1.6.7.tar.gz</kbd>, você pode abri-lo com
-      #{input 'tar zxvf ruby-1.6.7.tar.gz'}.  Mude do diretório atual
+      <kbd>ruby-3.4.4.tar.gz</kbd>, você pode abri-lo com
+      #{input 'tar zxvf ruby-3.4.4.tar.gz'}.  Mude do diretório atual
       para o diretório que acabou de ser criado (neste exemplo,
-      #{input 'cd ruby-1.6.7'}).
+      #{input 'cd ruby-3.4.4'}).
       END_PARAGRAPH
     end
     para do <<-END_PARAGRAPH
