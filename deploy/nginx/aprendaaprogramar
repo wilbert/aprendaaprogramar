@@ -1,22 +1,23 @@
-# nginx server block for aprendaaprogramar -> Rails (Capistrano) via Puma unix socket.
+# nginx server block for aprendaaprogramar -> Rails (Capistrano) via Puma on TCP 4050.
 #
-# Replace APP_DOMAIN below with your real domain, then obtain a certificate:
-#   sudo certbot --nginx -d APP_DOMAIN -d www.APP_DOMAIN
+# This documents the setup already live on the VPS. Puma binds 127.0.0.1:4050 and
+# [::1]:4050 (see config/puma.rb); nginx terminates TLS and proxies to it.
 #
-# Install:
+# Install (if setting up from scratch):
 #   sudo cp deploy/nginx/aprendaaprogramar /etc/nginx/sites-available/aprendaaprogramar
 #   sudo ln -s /etc/nginx/sites-available/aprendaaprogramar /etc/nginx/sites-enabled/
+#   sudo certbot --nginx -d aprendaaprogramar.rubyinsights.blog
 #   sudo nginx -t && sudo systemctl reload nginx
 
 upstream aprendaaprogramar_puma {
-    server unix:///var/www/aprendaaprogramar/shared/tmp/sockets/puma.sock fail_timeout=0;
+    server 127.0.0.1:4050 fail_timeout=0;
 }
 
 # HTTP -> HTTPS (keep :80 for ACME renewals)
 server {
     listen 80;
     listen [::]:80;
-    server_name APP_DOMAIN www.APP_DOMAIN;
+    server_name aprendaaprogramar.rubyinsights.blog;
 
     location /.well-known/acme-challenge/ { root /var/www/html; }
     location / { return 301 https://$host$request_uri; }
@@ -26,10 +27,10 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name APP_DOMAIN www.APP_DOMAIN;
+    server_name aprendaaprogramar.rubyinsights.blog;
 
-    ssl_certificate     /etc/letsencrypt/live/APP_DOMAIN/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/APP_DOMAIN/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/aprendaaprogramar.rubyinsights.blog/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/aprendaaprogramar.rubyinsights.blog/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 

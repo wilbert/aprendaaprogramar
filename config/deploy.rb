@@ -19,8 +19,7 @@ append :linked_files, ".env"
 append :linked_dirs,
        "log",
        "tmp/pids",
-       "tmp/cache",
-       "tmp/sockets"
+       "tmp/cache"
 
 set :keep_releases, 5
 set :bundle_jobs, 4
