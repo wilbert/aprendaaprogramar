@@ -1,157 +1,127 @@
 # Deployment
 
-Auto-deploy to a Contabo VPS using GitHub Actions. Pushing to `main` triggers a deploy workflow that SSHes into the VPS and runs the server-side deploy script.
-
-## How it works
+Production runs on the same Contabo VPS as the `mio` project, deployed with
+**Capistrano** from your machine. Puma runs as a systemd service and nginx fronts
+Puma's unix socket.
 
 ```
-git push origin main
-      │
-      ▼
-GitHub Actions (.github/workflows/deploy.yml)
-      │  SSH (key in GitHub secret VPS_SSH_KEY)
-      ▼
-VPS: scripts/deploy.sh
-      │  git reset --hard origin/main
-      │  [bundle install]
-      │  systemctl restart aprendaaprogramar.service
-      ▼
-Rails app runs on localhost:4050
-      │
-      ▼
-nginx reverse-proxies HTTPS traffic to 127.0.0.1:4050
+bundle exec cap production deploy
+        │  ssh deploy@13.140.144.154 (key: ~/.ssh/mio_contabo_deploy, agent-forwarded)
+        ▼
+/var/www/aprendaaprogramar/releases/<timestamp>   git checkout + bundle install
+        │  symlink current -> release, link shared/.env
+        ▼
+deploy:restart  ->  sudo systemctl restart aprendaaprogramar-puma
+        │
+        ▼
+Puma listens on shared/tmp/sockets/puma.sock
+        │
+        ▼
+nginx (HTTPS) reverse-proxies to the Puma socket
 ```
 
-This repository includes:
+## What's in the repo
 
-- `.github/workflows/deploy.yml` — GitHub Actions deploy workflow
-- `scripts/deploy.sh` — server-side deploy script run on the VPS
-- `deploy/nginx-aprendaaprogramar.conf` — nginx proxy config template
-- `deploy/aprendaaprogramar.service` — example systemd service
+- [`Capfile`](Capfile), [`config/deploy.rb`](config/deploy.rb),
+  [`config/deploy/production.rb`](config/deploy/production.rb) — Capistrano config
+- [`lib/capistrano/tasks/systemd.rake`](lib/capistrano/tasks/systemd.rake) —
+  `deploy:restart` / `deploy:status` via systemd
+- [`deploy/systemd/aprendaaprogramar-puma.service`](deploy/systemd/aprendaaprogramar-puma.service) — the Puma unit
+- [`deploy/nginx/aprendaaprogramar`](deploy/nginx/aprendaaprogramar) — nginx server block (replace `APP_DOMAIN`)
+- [`deploy/sudoers/aprendaaprogramar-deploy`](deploy/sudoers/aprendaaprogramar-deploy) — lets the deploy user restart the service without a password
+- [`.env.example`](.env.example) — the env vars that go in `shared/.env`
 
 ## One-time VPS setup
 
-These commands should be run on the Contabo VPS. Start as `root` or a sudo user.
+Run on the VPS as a sudo-capable user. rbenv is already installed system-wide at
+`/usr/local/rbenv` (shared with the `mio` app).
 
-### 1. Create the deploy user
-
-```bash
-adduser deploy
-usermod -aG sudo deploy
-```
-
-Switch to the deploy user for the rest of the setup:
+### 1. Ruby 3.4.4
 
 ```bash
-su - deploy
+sudo /usr/local/rbenv/bin/rbenv install -s 3.4.4
+sudo /usr/local/rbenv/shims/gem install bundler
 ```
 
-### 2. Install Ruby and Rails
-
-This is a legacy Rails 2 application, so the server must have a compatible Ruby installation.
+### 2. App directories and shared config
 
 ```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y git build-essential curl nginx ruby ruby-dev rubygems
-sudo gem install rails -v 2.0.5
+sudo mkdir -p /var/www/aprendaaprogramar/shared/tmp/sockets
+sudo chown -R deploy:deploy /var/www/aprendaaprogramar
+
+# Create shared/.env from the template and fill it in (SECRET_KEY_BASE, APP_HOST…).
+# Generate a real secret with: bin/rails secret
 ```
 
-If your distribution does not provide a compatible Ruby version, use a version manager such as `rbenv` or a suitable legacy package source.
+`shared/.env` (see [.env.example](.env.example)) at minimum:
 
-### 3. Configure SSH access for the repo
+```
+SECRET_KEY_BASE=<output of `bin/rails secret`>
+APP_HOST=APP_DOMAIN
+WEB_CONCURRENCY=2
+```
 
-Generate a deploy key for the app on the VPS:
+### 3. systemd service
 
 ```bash
-ssh-keygen -t ed25519 -C "aprendaaprogramar-vps-deploy-key" -f ~/.ssh/github_aprendaaprogramar -N ""
-cat ~/.ssh/github_aprendaaprogramar.pub
-```
-
-Add the public key to the GitHub repository as a read-only deploy key.
-
-Then set up the host alias in `~/.ssh/config`:
-
-```text
-Host github-aprendaaprogramar
-  HostName github.com
-  User git
-  IdentityFile ~/.ssh/github_aprendaaprogramar
-  IdentitiesOnly yes
-```
-
-Verify access:
-
-```bash
-ssh -T git@github-aprendaaprogramar
-```
-
-### 4. Clone the repository
-
-```bash
-sudo mkdir -p /var/www
-sudo chown deploy:deploy /var/www
-cd /var/www
-git clone git@github-aprendaaprogramar:wilbert/aprendaaprogramar.git
-cd aprendaaprogramar
-```
-
-### 5. Install systemd service
-
-Copy the example service file to `/etc/systemd/system/aprendaaprogramar.service`:
-
-```bash
-sudo cp deploy/aprendaaprogramar.service /etc/systemd/system/aprendaaprogramar.service
+sudo cp deploy/systemd/aprendaaprogramar-puma.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable aprendaaprogramar.service
-sudo systemctl start aprendaaprogramar.service
+sudo systemctl enable aprendaaprogramar-puma
+# (started/restarted automatically by Capistrano's deploy:restart)
 ```
 
-Confirm it is running:
+### 4. Passwordless restart for the deploy user
 
 ```bash
-sudo systemctl status aprendaaprogramar.service
+sudo cp deploy/sudoers/aprendaaprogramar-deploy /etc/sudoers.d/aprendaaprogramar-deploy
+sudo chmod 0440 /etc/sudoers.d/aprendaaprogramar-deploy
+sudo visudo -c
 ```
 
-### 6. Configure nginx
+### 5. nginx + TLS
 
-Copy and enable the nginx server block:
+Edit `deploy/nginx/aprendaaprogramar`, replace `APP_DOMAIN` with your real domain, then:
 
 ```bash
-sudo cp deploy/nginx-aprendaaprogramar.conf /etc/nginx/sites-available/aprendaaprogramar
+sudo cp deploy/nginx/aprendaaprogramar /etc/nginx/sites-available/aprendaaprogramar
 sudo ln -s /etc/nginx/sites-available/aprendaaprogramar /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
+sudo certbot --nginx -d APP_DOMAIN -d www.APP_DOMAIN
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Replace `APP_DOMAIN` in the copied nginx config with your actual domain name, and obtain TLS certificates with Certbot if needed.
+### 6. GitHub access for the server
 
-### 7. Add GitHub Actions secrets
-
-In GitHub repository settings → Secrets and variables → Actions, add the following secrets:
-
-| Secret | Value |
-|---|---|
-| `VPS_HOST` | VPS IP or hostname |
-| `VPS_USER` | `deploy` |
-| `VPS_SSH_KEY` | private SSH key for GitHub Actions to log into the VPS |
-| `VPS_SSH_PORT` | SSH port (optional; leave unset for `22`) |
-| `APP_DIR` | `/var/www/aprendaaprogramar` |
-
-The workflow will use the deploy user to SSH into the VPS and run `scripts/deploy.sh`.
+Capistrano fetches the repo from GitHub over SSH using **agent forwarding**
+(`forward_agent: true` in `config/deploy/production.rb`), so the server uses *your*
+SSH key. Make sure your key is loaded locally (`ssh-add -l`) and has access to
+`git@github.com:wilbert/aprendaaprogramar.git`.
 
 ## Deploying
 
-- Push to `main` to trigger the deploy workflow automatically.
-- Or run the workflow manually from GitHub Actions.
-- To deploy from the VPS by hand:
-
 ```bash
-cd /var/www/aprendaaprogramar
-APP_DIR=$PWD bash scripts/deploy.sh
+# Ensure your VPS deploy key and GitHub key are available to the ssh agent:
+ssh-add ~/.ssh/mio_contabo_deploy    # VPS login key (or set DEPLOY_SSH_KEY)
+
+bundle exec cap production deploy         # deploy the `main` branch
+BRANCH=some-branch bundle exec cap production deploy
+bundle exec cap production deploy:status  # systemctl status of the Puma service
 ```
+
+Overridable env vars:
+
+| Var | Default | Purpose |
+|---|---|---|
+| `BRANCH` | `main` | branch to deploy |
+| `DEPLOY_SSH_KEY` | `~/.ssh/mio_contabo_deploy` | key used to log into the VPS |
 
 ## Troubleshooting
 
-- If `git ls-remote origin main` fails on the server, verify the SSH deploy key and the `github-aprendaaprogramar` alias.
-- If `systemctl restart aprendaaprogramar.service` fails, inspect the unit with `sudo journalctl -u aprendaaprogramar.service -b`.
-- If nginx proxying fails, check `sudo nginx -t` and reload nginx again.
+- **Puma won't start:** `sudo journalctl -u aprendaaprogramar-puma -b`. Most often a
+  missing/invalid `SECRET_KEY_BASE` in `shared/.env`.
+- **nginx 502:** confirm the socket exists at
+  `/var/www/aprendaaprogramar/shared/tmp/sockets/puma.sock` and that the service is
+  running.
+- **`Blocked host` / 403:** set `APP_HOST` in `shared/.env` to your domain (see
+  [config/application.rb](config/application.rb)).
+- **GitHub fetch fails on the server:** run `ssh-add -l` locally; agent forwarding
+  needs your GitHub key loaded before `cap deploy`.
