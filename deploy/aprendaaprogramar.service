@@ -1,0 +1,19 @@
+[Unit]
+Description=Aprenda a Programar Rails App
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/aprendaaprogramar
+Environment=RAILS_ENV=production
+ExecStart=/usr/bin/env ruby /var/www/aprendaaprogramar/script/server -e production -p 3000
+Restart=always
+RestartSec=5
+User=deploy
+Group=deploy
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=aprendaaprogramar
+
+[Install]
+WantedBy=multi-user.target
