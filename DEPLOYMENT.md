@@ -1,8 +1,8 @@
 # Deployment
 
 Production runs on the same Contabo VPS as the `mio` project, deployed with
-**Capistrano** from your machine. Puma runs as a systemd service and nginx fronts
-Puma's unix socket.
+**Capistrano** from your machine. Puma runs as a systemd service and nginx (which
+terminates TLS for `aprendaaprogramar.rubyinsights.blog`) proxies to it on TCP 4050.
 
 ```
 bundle exec cap production deploy
@@ -14,10 +14,10 @@ bundle exec cap production deploy
 deploy:restart  ->  sudo systemctl restart aprendaaprogramar-puma
         │
         ▼
-Puma listens on shared/tmp/sockets/puma.sock
+Puma listens on 127.0.0.1:4050 and [::1]:4050
         │
         ▼
-nginx (HTTPS) reverse-proxies to the Puma socket
+nginx (HTTPS, aprendaaprogramar.rubyinsights.blog) reverse-proxies to 127.0.0.1:4050
 ```
 
 ## What's in the repo
@@ -27,7 +27,7 @@ nginx (HTTPS) reverse-proxies to the Puma socket
 - [`lib/capistrano/tasks/systemd.rake`](lib/capistrano/tasks/systemd.rake) —
   `deploy:restart` / `deploy:status` via systemd
 - [`deploy/systemd/aprendaaprogramar-puma.service`](deploy/systemd/aprendaaprogramar-puma.service) — the Puma unit
-- [`deploy/nginx/aprendaaprogramar`](deploy/nginx/aprendaaprogramar) — nginx server block (replace `APP_DOMAIN`)
+- [`deploy/nginx/aprendaaprogramar`](deploy/nginx/aprendaaprogramar) — nginx server block (proxies to Puma on 127.0.0.1:4050)
 - [`deploy/sudoers/aprendaaprogramar-deploy`](deploy/sudoers/aprendaaprogramar-deploy) — lets the deploy user restart the service without a password
 - [`.env.example`](.env.example) — the env vars that go in `shared/.env`
 
@@ -46,18 +46,19 @@ sudo /usr/local/rbenv/shims/gem install bundler
 ### 2. App directories and shared config
 
 ```bash
-sudo mkdir -p /var/www/aprendaaprogramar/shared/tmp/sockets
+sudo mkdir -p /var/www/aprendaaprogramar/shared/tmp/pids
 sudo chown -R deploy:deploy /var/www/aprendaaprogramar
 
 # Create shared/.env from the template and fill it in (SECRET_KEY_BASE, APP_HOST…).
-# Generate a real secret with: bin/rails secret
+# Generate a real secret with `openssl rand -hex 64` or `bin/rails secret`.
 ```
 
 `shared/.env` (see [.env.example](.env.example)) at minimum:
 
 ```
-SECRET_KEY_BASE=<output of `bin/rails secret`>
-APP_HOST=APP_DOMAIN
+SECRET_KEY_BASE=<output of `openssl rand -hex 64`>
+APP_HOST=aprendaaprogramar.rubyinsights.blog
+PORT=4050
 WEB_CONCURRENCY=2
 ```
 
@@ -80,12 +81,14 @@ sudo visudo -c
 
 ### 5. nginx + TLS
 
-Edit `deploy/nginx/aprendaaprogramar`, replace `APP_DOMAIN` with your real domain, then:
+The server already has a working nginx block + TLS cert for
+`aprendaaprogramar.rubyinsights.blog` proxying to `127.0.0.1:4050`. To (re)install
+from the repo version:
 
 ```bash
 sudo cp deploy/nginx/aprendaaprogramar /etc/nginx/sites-available/aprendaaprogramar
 sudo ln -s /etc/nginx/sites-available/aprendaaprogramar /etc/nginx/sites-enabled/
-sudo certbot --nginx -d APP_DOMAIN -d www.APP_DOMAIN
+sudo certbot --nginx -d aprendaaprogramar.rubyinsights.blog
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
@@ -118,9 +121,10 @@ Overridable env vars:
 
 - **Puma won't start:** `sudo journalctl -u aprendaaprogramar-puma -b`. Most often a
   missing/invalid `SECRET_KEY_BASE` in `shared/.env`.
-- **nginx 502:** confirm the socket exists at
-  `/var/www/aprendaaprogramar/shared/tmp/sockets/puma.sock` and that the service is
-  running.
+- **nginx 502 / "connection refused" to :4050:** Puma isn't listening on 4050.
+  Check `sudo systemctl status aprendaaprogramar-puma` and that `config/puma.rb`
+  binds `127.0.0.1:4050` (it does by default). Confirm nothing else occupies the
+  port: `sudo ss -ltnp | grep 4050`.
 - **`Blocked host` / 403:** set `APP_HOST` in `shared/.env` to your domain (see
   [config/application.rb](config/application.rb)).
 - **GitHub fetch fails on the server:** run `ssh-add -l` locally; agent forwarding
