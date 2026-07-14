@@ -1,0 +1,61 @@
+# nginx server block for aprendaaprogramar -> Rails (Capistrano) via Puma unix socket.
+#
+# Replace APP_DOMAIN below with your real domain, then obtain a certificate:
+#   sudo certbot --nginx -d APP_DOMAIN -d www.APP_DOMAIN
+#
+# Install:
+#   sudo cp deploy/nginx/aprendaaprogramar /etc/nginx/sites-available/aprendaaprogramar
+#   sudo ln -s /etc/nginx/sites-available/aprendaaprogramar /etc/nginx/sites-enabled/
+#   sudo nginx -t && sudo systemctl reload nginx
+
+upstream aprendaaprogramar_puma {
+    server unix:///var/www/aprendaaprogramar/shared/tmp/sockets/puma.sock fail_timeout=0;
+}
+
+# HTTP -> HTTPS (keep :80 for ACME renewals)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name APP_DOMAIN www.APP_DOMAIN;
+
+    location /.well-known/acme-challenge/ { root /var/www/html; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+# HTTPS terminator -> Puma
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name APP_DOMAIN www.APP_DOMAIN;
+
+    ssl_certificate     /etc/letsencrypt/live/APP_DOMAIN/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/APP_DOMAIN/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    client_max_body_size 20m;
+
+    root /var/www/aprendaaprogramar/current/public;
+
+    # Serve the tutorial's static CSS/images directly from nginx.
+    location ~ ^/(images|stylesheets|assets)/ {
+        gzip_static on;
+        expires max;
+        add_header Cache-Control public;
+    }
+
+    try_files $uri/index.html $uri @puma;
+
+    location @puma {
+        proxy_pass http://aprendaaprogramar_puma;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Forwarded-Host  $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Real-IP         $remote_addr;
+
+        proxy_read_timeout 60s;
+    }
+}

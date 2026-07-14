@@ -39,7 +39,7 @@ module FormattingPage
       
       puts case 'abobora'
         when String then 'sim'
-        when Fixnum then 'nao'
+        when Integer then 'nao'
         else 'talvez'
       end
       

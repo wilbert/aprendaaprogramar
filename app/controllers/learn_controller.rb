@@ -1,26 +1,55 @@
+# frozen_string_literal: true
+
+# Serves the "Learn to Program" tutorial (Chris Pine, PT-BR translation).
+#
+# The actual page generation lives in the legacy engine at
+# lib/learn_to_program_tutorial. That engine was written against Ruby's CGI class:
+# it reads request parameters from `cgi.params` (a Hash of String => Array) and
+# writes its finished HTML back through `cgi.out { body }`. This controller provides
+# a tiny CGI-compatible shim so the engine runs unchanged under Rails 8.
 class LearnController < ApplicationController
-  session :off
-  
+  # The engine executes the tutorial's sample code by temporarily swapping out
+  # Kernel#puts/#gets/#putc — process-global state that is not reentrant. Serialize
+  # rendering within a process so concurrent Puma threads can't corrupt it. (Multiple
+  # Puma worker processes still render in parallel; each has its own Kernel.)
+  RENDER_MUTEX = Mutex.new
+
+  # Minimal stand-in for Ruby's CGI object, exposing just what the engine uses.
+  class CgiShim
+    attr_reader :params, :response_content_type
+
+    # +params+ is a Hash of String => Array (CGI semantics). Missing keys return
+    # [nil] so the engine's `params['X'][0]` never raises.
+    def initialize(params)
+      @params = Hash.new { |_hash, _key| [nil] }
+      @params.merge!(params)
+      @response_content_type = "text/html"
+    end
+
+    # The engine calls `cgi.out('text/plain') { body }` or `cgi.out { body }`.
+    # Record the requested content type and return the body to the controller.
+    def out(content_type = "text/html")
+      @response_content_type = content_type
+      block_given? ? yield : nil
+    end
+  end
+
   def index
-    # captura a saída 
-    request.cgi.instance_eval do
-      def out(options = 'text/plain', optional = true) 
-        yield if block_given?
-      end
+    shim = CgiShim.new(cgi_params)
+    body = RENDER_MUTEX.synchronize { LearnToProgramTutorial.handle_request(shim) }
+
+    if shim.response_content_type == "text/plain"
+      render plain: body
+    else
+      render html: body.to_s.html_safe, layout: false # rubocop:disable Rails/OutputSafety
     end
-    opt = {}
-    
-    # reajusta os parâmetros para passar ao CGI
-    params.each { |k,v| opt.merge!( k => [v] ) }
-    unless opt.include?("ShowTutorialCode")
-      opt.merge!("ShowTutorialCode" => [nil])
-    end
-    unless opt.include?("Chapter")
-      opt.merge!("Chapter" => 13)
-    end
-    request.cgi.params = opt
-    
-    # redireciona a saída do cgi para a saída do controller
-    render :text => LearnToProgramTutorial.handle_request(request.cgi), :status => 200, :layout => false
+  end
+
+  private
+
+  # Translate Rails query parameters into CGI-style params: every value wrapped
+  # in an Array, e.g. { "Chapter" => ["00"] }.
+  def cgi_params
+    request.query_parameters.transform_values { |value| Array(value) }
   end
 end

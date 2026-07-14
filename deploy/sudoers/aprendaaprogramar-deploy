@@ -1,0 +1,4 @@
+# Allow the deploy user to manage the aprendaaprogramar service without a password
+# (used by Capistrano deploy:restart).
+# Install to /etc/sudoers.d/aprendaaprogramar-deploy (chmod 0440, validate with `visudo -c`).
+deploy ALL=(root) NOPASSWD: /usr/bin/systemctl start aprendaaprogramar-puma, /usr/bin/systemctl stop aprendaaprogramar-puma, /usr/bin/systemctl restart aprendaaprogramar-puma, /usr/bin/systemctl reload aprendaaprogramar-puma, /usr/bin/systemctl status aprendaaprogramar-puma
