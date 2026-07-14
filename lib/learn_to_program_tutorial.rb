@@ -12,7 +12,7 @@
 require 'cgi'
 require 'stringio'
 
-Dir.glob(File.dirname(__FILE__) + '/learn_to_program_tutorial/*').each { |file| require_dependency file }
+Dir.glob(File.dirname(__FILE__) + '/learn_to_program_tutorial/*').each { |file| require_relative file }
 
 LINKADDR   = '/'
 FRLTP_ADDR = 'http://pragmaticprogrammer.com/titles/fr_ltp'
