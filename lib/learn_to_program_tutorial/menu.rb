@@ -6,17 +6,17 @@ module Menu
     para(:class=>'funnyMenuText fancyMenuText', :style=>'font-size: 12px; font-family: times, serif;') { '<em>melhorada</em>' }
     para(:class=>'funnyMenuText fancyMenuText', :style=>'font-size: 12px; font-family: times, serif; letter-spacing: 6px; font-variant: small-caps;') { 'estendida' }
     puts "<a href=\"#{FRLTP_ADDR}\">"
-      img(:width=>'100', :height=>'120', :src=>'images/LTP_cover.jpg')
+      img(:width=>'100', :height=>'120', :src=>'/images/LTP_cover.jpg')
     puts '</a>'
   end
   
   def menuTOC
-    para(:class=>'funnyMenuText') { '&laquo; o tutorial original &raquo;' }
-    
+    para(:class=>'funnyMenuText') { t(:menu_original) }
+
     ol(:start=>'0', :style=>'padding-top: 15px; padding-bottom: 15px;') do
       @chapters.sort_by{|x| x[0]}.each do |aChapNum, aChapter|
         if aChapNum != 'format'
-          li { makeLink(aChapter[0],aChapter[1]) }
+          li { makeLink(chapterTitle(aChapNum), aChapter[1]) }
         end
       end
     end

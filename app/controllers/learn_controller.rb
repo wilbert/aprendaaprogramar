@@ -14,15 +14,19 @@ class LearnController < ApplicationController
   # Puma worker processes still render in parallel; each has its own Kernel.)
   RENDER_MUTEX = Mutex.new
 
+  SUPPORTED_LOCALES = %w[pt en].freeze
+
   # Minimal stand-in for Ruby's CGI object, exposing just what the engine uses.
   class CgiShim
-    attr_reader :params, :response_content_type
+    attr_reader :params, :response_content_type, :locale
 
     # +params+ is a Hash of String => Array (CGI semantics). Missing keys return
-    # [nil] so the engine's `params['X'][0]` never raises.
-    def initialize(params)
+    # [nil] so the engine's `params['X'][0]` never raises. +locale+ tells the
+    # engine which language to render the chrome/labels in.
+    def initialize(params, locale = "pt")
       @params = Hash.new { |_hash, _key| [nil] }
       @params.merge!(params)
+      @locale = locale
       @response_content_type = "text/html"
     end
 
@@ -35,7 +39,7 @@ class LearnController < ApplicationController
   end
 
   def index
-    shim = CgiShim.new(cgi_params)
+    shim = CgiShim.new(cgi_params, current_locale)
     body = RENDER_MUTEX.synchronize { LearnToProgramTutorial.handle_request(shim) }
 
     if shim.response_content_type == "text/plain"
@@ -46,6 +50,12 @@ class LearnController < ApplicationController
   end
 
   private
+
+  # Locale comes from the route (/pt or /en); default to Portuguese.
+  def current_locale
+    loc = params[:locale].to_s
+    SUPPORTED_LOCALES.include?(loc) ? loc : "pt"
+  end
 
   # Translate Rails query parameters into CGI-style params: every value wrapped
   # in an Array, e.g. { "Chapter" => ["00"] }.

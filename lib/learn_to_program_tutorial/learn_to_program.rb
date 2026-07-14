@@ -1,10 +1,66 @@
 module LearnToProgram
 
+  #  Localized short chapter titles. The chapter BODIES stay in Portuguese —
+  #  only these labels and the site chrome are translated. /en shows an
+  #  "em tradução" banner and falls back to the Portuguese body.
+  CHAPTER_TITLES = {
+    'pt' => {
+      'format' => 'Página de Formatação',
+      '00' => 'Iniciando', '01' => 'Números', '02' => 'Letras',
+      '03' => 'Variáveis e Atribuições', '04' => 'Misturando tudo',
+      '05' => 'Mais Sobre Métodos', '06' => 'Controle de Fluxo',
+      '07' => 'Arrays e Iteradores', '08' => 'Escrevendo seus Próprios Métodos',
+      '09' => 'Classes', '10' => 'Blocos e Procs', '11' => 'Além deste Tutorial'
+    },
+    'en' => {
+      'format' => 'Formatting Page',
+      '00' => 'Getting Started', '01' => 'Numbers', '02' => 'Letters',
+      '03' => 'Variables and Assignment', '04' => 'Mixing It Up',
+      '05' => 'More About Methods', '06' => 'Flow Control',
+      '07' => 'Arrays and Iterators', '08' => 'Writing Your Own Methods',
+      '09' => 'Classes', '10' => 'Blocks and Procs', '11' => 'Beyond This Tutorial'
+    }
+  }
+
+  #  UI/chrome strings per locale.
+  STRINGS = {
+    'pt' => {
+      site_title:     'Aprenda a Programar, por Chris Pine',
+      nav_home:       'Início',
+      nav_tutorials:  'Tutoriais',
+      nav_current:    'Aprenda a Programar',
+      skip:           'Pular para o conteúdo',
+      lang_label:     'Idioma',
+      menu_original:  '&laquo; o tutorial original &raquo;',
+      footer_privacy: 'Privacidade',
+      footer_terms:   'Termos',
+      footer_cookies: 'Cookies',
+      wip_html:       nil
+    },
+    'en' => {
+      site_title:     'Learn to Program (Brazilian Portuguese edition)',
+      nav_home:       'Home',
+      nav_tutorials:  'Tutorials',
+      nav_current:    'Learn to Program',
+      skip:           'Skip to content',
+      lang_label:     'Language',
+      menu_original:  '&laquo; the original tutorial &raquo;',
+      footer_privacy: 'Privacy',
+      footer_terms:   'Terms',
+      footer_cookies: 'Cookies',
+      wip_html:       'This chapter is still being translated into English. For now ' \
+                      'the text below is in Portuguese &mdash; for the English original, see ' \
+                      'Chris Pine&#39;s <a href="http://pine.fm/LearnToProgram/">Learn to Program</a>.'
+    }
+  }
+
   def initialize (cgi)
     @cgi = cgi
     @depth = 0
     @page  = []
-    
+    @locale = (cgi.respond_to?(:locale) ? cgi.locale : nil).to_s
+    @locale = 'pt' unless STRINGS.key?(@locale)
+
     #  'format' é uma página escondida para testar a formatação.
     @chapters = {'format'=>['Página de Formatação',          		:generateFormattingPage]}
     @chapters['00'     ] = ['Iniciando',                    		:generateSetup]
@@ -29,8 +85,31 @@ module LearnToProgram
   end
   
   def selfLink (chap = nil)
-    #  REQUEST_URI includes "?Chapter=Foo"
-    LINKADDR+'index.rb?Chapter='+(chap ? getChapter(chap) : '')
+    "/#{@locale}/index.rb?Chapter=" + (chap ? getChapter(chap) : '')
+  end
+
+  #  Current chapter number as it appears in the URL (or '' for the TOC page).
+  def currentChapterParam
+    (@cgi.params['Chapter'][0] || '').to_s
+  end
+
+  #  Same page in the other locale (used by the language switcher).
+  def switchLocaleLink (other)
+    "/#{other}/index.rb?Chapter=#{currentChapterParam}"
+  end
+
+  def localeRoot
+    "/#{@locale}"
+  end
+
+  def t (key)
+    STRINGS[@locale][key]
+  end
+
+  #  Localized short title for a chapter number, falling back to the PT title.
+  def chapterTitle (num)
+    (CHAPTER_TITLES[@locale] && CHAPTER_TITLES[@locale][num]) ||
+      (@chapters[num] && @chapters[num][0])
   end
   
   def makeLink (name, methodName)

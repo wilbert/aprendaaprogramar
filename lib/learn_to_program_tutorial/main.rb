@@ -7,15 +7,15 @@ module Main
     srand
     chapNum   = @cgi.params['Chapter'][0]
     chapter   = @chapters[chapNum]
-    chapTitle = 'Aprenda a Programar, por Chris Pine'
+    chapTitle = t(:site_title).dup
     if chapter
       chapTitle = chapNum + '.&nbsp;&nbsp;' if chapNum < 'A'
       chapTitle.sub! /^0/, ''
-      chapTitle += chapter[0]
+      chapTitle += chapterTitle(chapNum)
     end
     
     puts '<!DOCTYPE html>'
-    html(:lang=>'pt_br') do
+    html(:lang=> (@locale == 'en' ? 'en' : 'pt-br')) do
       head do
         meta('http-equiv'=>"Content-Type", :content=>"text/html; charset=utf-8")
 
@@ -39,8 +39,16 @@ module Main
         title { chapTitle }
       end # head
       body do
-      puts <<~'RIHEADER'
-        <a class="ri-skip" href="#contentPane">Pular para o conteúdo</a>
+      lang_switch = %w[pt en].map do |code|
+        if code == @locale
+          %(<span class="ri-lang-current">#{code.upcase}</span>)
+        else
+          %(<a href="#{switchLocaleLink(code)}">#{code.upcase}</a>)
+        end
+      end.join('<span class="ri-lang-sep">/</span>')
+
+      puts <<~RIHEADER
+        <a class="ri-skip" href="#contentPane">#{t(:skip)}</a>
         <header class="ri-header">
           <div class="ri-header-inner">
             <a class="ri-logo" href="https://rubyinsights.blog" aria-label="RubyInsights">
@@ -48,39 +56,43 @@ module Main
               <span class="ri-logo-badge">Ruby</span><span class="ri-logo-word">Insights</span>
             </a>
             <nav class="ri-nav" aria-label="Primary">
-              <a href="https://rubyinsights.blog">Início</a>
+              <a href="https://rubyinsights.blog">#{t(:nav_home)}</a>
               <a href="https://rubyinsights.blog/ruby">Ruby</a>
               <a href="https://rubyinsights.blog/rails">Rails</a>
-              <a href="https://rubyinsights.blog/tutorials">Tutoriais</a>
-              <a class="ri-nav-current" href="/">Aprenda a Programar</a>
+              <a href="https://rubyinsights.blog/tutorials">#{t(:nav_tutorials)}</a>
+              <a class="ri-nav-current" href="#{localeRoot}">#{t(:nav_current)}</a>
             </nav>
+            <div class="ri-lang" aria-label="#{t(:lang_label)}">#{lang_switch}</div>
           </div>
         </header>
       RIHEADER
       div(:id=>'pageWidth') do
         div(:id=>'headerBar') do
           div(:id=>'titlePicContainer') do
-            puts '<a href="'+LINKADDR+'">'
-            img(:id=>'titlePic', :width=>'500', :height=>'108', :src=>'images/titleLTP_pt_br.gif', :alt=>'Aprenda a Programar')
+            puts '<a href="'+localeRoot+'">'
+            img(:id=>'titlePic', :width=>'500', :height=>'108', :src=>'/images/titleLTP_pt_br.gif', :alt=>'Aprenda a Programar')
             puts '</a>'
           end
-          puts '<a href="'+LINKADDR+'">'
+          puts '<a href="'+localeRoot+'">'
           puts '  <img id="locket" width="82" height="82" alt="apenas uma figura bonitinha"'
-          puts '    src="images/locketLTP.png" />'
+          puts '    src="/images/locketLTP.png" />'
           puts '</a>'
         end
         div(:id=>'menuPane') do
-          img(:id=>'menuSpearTop', :width=>'35', :height=>'38', :src=>'images/spearup_sm.gif')
+          img(:id=>'menuSpearTop', :width=>'35', :height=>'38', :src=>'/images/spearup_sm.gif')
           
           menuBookLink
           
-          img(:width=>'64', :height=>'21', :style=>'padding: 30px;', :src=>'images/swirly.gif')
+          img(:width=>'64', :height=>'21', :style=>'padding: 30px;', :src=>'/images/swirly.gif')
           
           menuTOC
           
-          img(:id=>'menuSpearBottom', :width=>'36', :height=>'40', :src=>'images/speardown_sm.gif')
+          img(:id=>'menuSpearBottom', :width=>'36', :height=>'40', :src=>'/images/speardown_sm.gif')
         end
         div(:id=>'contentPane') do
+          if t(:wip_html)
+            puts %(<div class="ri-wip" role="note">#{t(:wip_html)}</div>)
+          end
           if chapter
             if chapter[0]
               h1 {chapTitle}
@@ -315,7 +327,7 @@ module Main
             end
             para do
               '<a href="http://ruby-lang.org">'+
-                '<img src="images/PoweredByRuby.png" alt="powered by Ruby" width="234" height="60" />'+
+                '<img src="/images/PoweredByRuby.png" alt="powered by Ruby" width="234" height="60" />'+
               '</a>'
             end
             puts HLINE
@@ -344,14 +356,19 @@ module Main
           para(:style=>'padding-bottom: 20px;') { "&copy; 2003-#{Time.now.year} Chris Pine" }
         end # contentPane
       end # pageWidth
+      footer_copy = if @locale == 'en'
+        %(Adapted by Wilbert Ribeiro &middot; Based on Chris Pine&#39;s original <a href="http://pine.fm/LearnToProgram/">Learn to Program</a> (&copy; 2003&ndash;#{Time.now.year}).)
+      else
+        %(Adaptado por Wilbert Ribeiro &middot; Baseado no <a href="http://pine.fm/LearnToProgram/">Learn to Program</a> original de Chris Pine (&copy; 2003&ndash;#{Time.now.year}).)
+      end
       puts <<~RIFOOTER
         <footer class="ri-footer">
           <div class="ri-footer-inner">
-            <p class="ri-footer-copy">Adaptado por Wilbert Ribeiro &middot; Baseado no <a href="http://pine.fm/LearnToProgram/">Learn to Program</a> original de Chris Pine (&copy; 2003&ndash;#{Time.now.year}).</p>
+            <p class="ri-footer-copy">#{footer_copy}</p>
             <nav class="ri-footer-nav" aria-label="Legal">
-              <a href="https://rubyinsights.blog/privacy-policy">Privacidade</a>
-              <a href="https://rubyinsights.blog/terms-of-use">Termos</a>
-              <a href="https://rubyinsights.blog/cookie-policy">Cookies</a>
+              <a href="https://rubyinsights.blog/privacy-policy">#{t(:footer_privacy)}</a>
+              <a href="https://rubyinsights.blog/terms-of-use">#{t(:footer_terms)}</a>
+              <a href="https://rubyinsights.blog/cookie-policy">#{t(:footer_cookies)}</a>
             </nav>
           </div>
         </footer>

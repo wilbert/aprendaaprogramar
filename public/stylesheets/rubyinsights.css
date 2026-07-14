@@ -85,6 +85,22 @@ a:hover { color: var(--ruby-dark); text-decoration: underline; }
 .ri-nav a:hover { color: var(--ruby-red); text-decoration: none; }
 .ri-nav a.ri-nav-current { color: var(--ruby-red); }
 
+/* language switcher */
+.ri-lang { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 600; }
+.ri-lang a { color: rgba(43, 60, 74, 0.6); text-decoration: none; transition: color 0.15s ease; }
+.ri-lang a:hover { color: var(--ruby-red); text-decoration: none; }
+.ri-lang-current { color: var(--ruby-red); }
+.ri-lang-sep { color: rgba(43, 60, 74, 0.3); }
+
+/* "em tradução" / work-in-progress banner (shown on /en) */
+.ri-wip {
+  margin: 0 0 1.5rem; padding: 0.85rem 1.1rem;
+  background: #fff7e6; border: 1px solid #ffd66e;
+  border-left: 4px solid var(--ruby-red); border-radius: var(--radius-sm);
+  color: var(--ruby-dark); font-size: 0.92rem; line-height: 1.5;
+}
+.ri-wip a { color: var(--ruby-red); font-weight: 600; }
+
 /* ------------------------------ layout ---------------------------------- */
 #pageWidth {
   flex: 1 0 auto;
