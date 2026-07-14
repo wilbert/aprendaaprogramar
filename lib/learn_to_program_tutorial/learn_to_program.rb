@@ -285,7 +285,7 @@ module LearnToProgram
         error_msg = <<-END_ERROR
           <html><head><title>ERRO</title></head>
           <body><h3>ERRO: envie um e-mail para o Chris ou para a Katy com o seguinte endereço</h3>
-          <pre><strong>#{e.class}:  #{htmlEscape(e.message)}</strong>
+          <pre><strong>#{e.class}:  #{CGI::escapeHTML(e.message)}</strong>
           #{e.backtrace.join("\n")}
           </pre>
           </body></html>
